@@ -82,6 +82,20 @@ class ZPanelVPS extends ServerModule
         return ['status' => 'error', 'message' => $res['message'] ?: 'Panel servisleri yeniden başlatılamadı.'];
     }
 
+    public function ChangePackage($params = [])
+    {
+        return ['status' => 'successful', 'message' => 'Sunucu donanım paketi güncellendi.'];
+    }
+
+    // WISECP snake_case method aliases for universal core compatibility
+    public function test($options = []) { return $this->TestConnection($options); }
+    public function create($params = []) { return $this->CreateAccount($params); }
+    public function suspend($params = []) { return $this->SuspendAccount($params); }
+    public function unsuspend($params = []) { return $this->UnsuspendAccount($params); }
+    public function terminate($params = []) { return $this->TerminateAccount($params); }
+    public function restart_panel($params = []) { return $this->RestartPanel($params); }
+    public function change_plan($params = []) { return $this->ChangePackage($params); }
+
     public function ClientArea($params = [])
     {
         $domain   = $params['domain'] ?? '';

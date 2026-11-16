@@ -1,7 +1,7 @@
 <?php
 /**
  * zPanel VPS Kontrol Modülü - WISECP v3 Konfigürasyonu
- * Resmi WISECP Standartlarına ve zPanel Mimari Portlarına (API: 8055, Müşteri: 8025, Admin: 8035) Uygundur.
+ * Resmi WISECP Standartlarına ve zPanel Mimari Portlarına (API: 8056, Müşteri: 8026, Admin: 8036, Webmail: 8046) Uygundur.
  */
 return [
     'type-version'      => '3.0',
