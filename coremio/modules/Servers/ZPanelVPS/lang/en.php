@@ -14,3 +14,4 @@ return [
     'test_connection'       => 'Test Connection (Port 8056)',
     'test_success'          => 'zPanel API and ports verified successfully.',
 ];
+

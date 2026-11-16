@@ -32,3 +32,4 @@ WISECP `api_token` alanı üzerinden `Authorization: Bearer <token>` başlığı
 | `RestartPanel` / `restart_panel` | `POST` | `/v1/system/restart-panel` | zPanel Core ve zMaxServer servislerini yeniden başlatma |
 | `ChangePackage` / `change_plan` | Dahili | - | Donanım paketi revizyonu |
 | `ClientArea` / `clientArea` | Dahili | `pages/clientArea.php` | Donanım metrikleri, port bilgileri ve hızlı eylemler |
+
