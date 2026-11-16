@@ -1,4 +1,4 @@
-﻿# zPanel VPS & Cloud Server ServerModule for WISECP V3
+# zPanel VPS & Cloud Server ServerModule for WISECP V3
 
 WISECP v3 için zPanel VPS ve Bulut Sunucu KVM/LXC otomasyonu modülü.
 
