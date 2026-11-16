@@ -1,8 +1,7 @@
 <?php
 /**
- * WISECP v3 zPanel VPS Module - Client Area View
- * Reference: https://github.com/wisecp-v3/sample-server-module
- * Port Mimarisi: 8026 (Client), 8036 (Root), 8046 (Webmail), 8056 (API)
+ * WISECP zPanel VPS Module - Client Area View
+ * Port Mimarisi: 8026 (Client), 8036 (Root/Admin), 8046 (Webmail), 8056 (API)
  */
 defined('CORE_FOLDER') OR exit('You can not access this file.');
 
@@ -14,12 +13,13 @@ $adminPort   = $data['admin_port'] ?? 8036;
 $status      = $data['status'] ?? 'active';
 $packageName = $data['package_name'] ?? 'zPanel Bulut Sunucu';
 $ssoUrl      = $data['sso_url'] ?? '#';
+$vncUrl      = $data['vnc_url'] ?? '#';
 
 $cpuCore = $data['cpu_cores'] ?? 4;
 $ramMb   = $data['ram_mb'] ?? 8192;
 $diskGb  = $data['disk_gb'] ?? 160;
 $bwTb    = $data['bandwidth_tb'] ?? 5;
-$osName  = $data['os_name'] ?? 'Ubuntu / AlmaLinux';
+$osName  = $data['os_name'] ?? 'Ubuntu 24.04 LTS';
 ?>
 
 <link rel="stylesheet" href="coremio/modules/Servers/ZPanelVPS/assets/css/client.css">
@@ -31,7 +31,7 @@ $osName  = $data['os_name'] ?? 'Ubuntu / AlmaLinux';
       <div>
         <div class="zp-title-wrap">
           <h2 class="zp-main-title"><?php echo htmlspecialchars($packageName, ENT_QUOTES, 'UTF-8'); ?></h2>
-          <span class="zp-ver-badge">zPanel v1.0</span>
+          <span class="zp-ver-badge">zPanel VPS</span>
         </div>
         <div class="zp-meta-sub">
           <?php if (!empty($domain)): ?>
@@ -80,36 +80,88 @@ $osName  = $data['os_name'] ?? 'Ubuntu / AlmaLinux';
     </div>
   </div>
 
-  <!-- Hızlı Eylemler Kartı -->
+  <!-- Sunucu Güç & Yaşam Döngüsü Eylemleri -->
   <div class="zp-card">
-    <h3 class="zp-section-title">Hızlı Sunucu Eylemleri</h3>
+    <h3 class="zp-section-title">Sunucu Güç &amp; Yaşam Döngüsü Yönetimi</h3>
     
     <div class="zp-btn-group">
-      <button type="button" onclick="if(confirm('Sunucuyu yeniden başlatmak istediğinize emin misiniz?')) { window.location.href='?action=reboot'; }" class="zp-btn-danger-outline">
-        <span>&#x21bb;</span> Sunucuyu Yeniden Başlat
-      </button>
+      <form method="post" class="zp-inline-form">
+        <input type="hidden" name="module_action" value="start">
+        <button type="submit" class="zp-btn-success-outline">
+          <span>&#x25b6;</span> Sunucuyu Başlat
+        </button>
+      </form>
 
-      <button type="button" onclick="if(confirm('zPanel servislerini yeniden başlatmak istediğinize emin misiniz?')) { window.location.href='?action=restart_panel'; }" class="zp-btn-secondary-outline">
-        <span>&#x2699;</span> zPanel Servislerini Yeniden Başlat
-      </button>
+      <form method="post" class="zp-inline-form">
+        <input type="hidden" name="module_action" value="stop">
+        <button type="submit" onclick="return confirm('Sunucuyu kapatmak istediğinize emin misiniz?');" class="zp-btn-danger-outline">
+          <span>&#x25a0;</span> Sunucuyu Kapat
+        </button>
+      </form>
 
-      <a href="https://<?php echo htmlspecialchars($panelHost, ENT_QUOTES, 'UTF-8'); ?>:8046" target="_blank" class="zp-btn-action-outline">
-        <span>&#x2709;</span> Webmail Giriş (:8046)
+      <form method="post" class="zp-inline-form">
+        <input type="hidden" name="module_action" value="reboot">
+        <button type="submit" onclick="return confirm('Sunucuyu yeniden başlatmak istediğinize emin misiniz?');" class="zp-btn-warning-outline">
+          <span>&#x21bb;</span> Yeniden Başlat
+        </button>
+      </form>
+
+      <form method="post" class="zp-inline-form">
+        <input type="hidden" name="module_action" value="restart_panel">
+        <button type="submit" onclick="return confirm('zPanel servislerini yeniden başlatmak istediğinize emin misiniz?');" class="zp-btn-secondary-outline">
+          <span>&#x2699;</span> Servisleri Yeniden Başlat
+        </button>
+      </form>
+
+      <form method="post" class="zp-inline-form">
+        <input type="hidden" name="module_action" value="reset_root_password">
+        <button type="submit" onclick="return confirm('Root şifresi sıfırlansın ve yeni şifre oluşturulsun mu?');" class="zp-btn-danger-outline">
+          <span>&#x1f511;</span> Root Şifresi Sıfırla
+        </button>
+      </form>
+
+      <a href="<?php echo htmlspecialchars($vncUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" class="zp-btn-action-outline">
+        <span>&#x2328;</span> Acil Durum Web Konsolu
       </a>
     </div>
   </div>
 
-  <!-- Ağ ve Port Detayları Kartı -->
+  <!-- 3. Port & Ağ Erişim Bilgileri -->
   <div class="zp-card">
-    <h3 class="zp-section-title">Sunucu Ağ ve Port Yapılandırması</h3>
+    <h3 class="zp-section-title">Ağ &amp; Servis Port Mimarisi</h3>
     
-    <table class="zp-table">
-      <tr><td>Statik IPv4 Adresi</td><td class="zp-code-bold"><?php echo htmlspecialchars($serverIp ?: 'Atanmadı', ENT_QUOTES, 'UTF-8'); ?></td></tr>
-      <tr><td>Web Sunucusu</td><td class="zp-strong">zMaxServer &amp; OpenLiteSpeed (LSAPI)</td></tr>
-      <tr><td>zPanel Müşteri Paneli</td><td class="zp-code-bold">8026 / TCP (HTTPS)</td></tr>
-      <tr><td>zPanel Root / Yönetici Paneli</td><td class="zp-code-bold">8036 / TCP (HTTPS)</td></tr>
-      <tr><td>Webmail Portu</td><td class="zp-code-bold">8046 / TCP (HTTPS)</td></tr>
-      <tr><td>Core REST API Portu</td><td class="zp-code-bold">8056 / TCP (HTTPS)</td></tr>
-    </table>
+    <div class="zp-ports-grid">
+      <div class="zp-port-row">
+        <div class="zp-port-num">8026</div>
+        <div>
+          <div class="zp-port-title">Kullanıcı Kontrol Paneli</div>
+          <div class="zp-port-desc">HTTPS Güvenli Web Kontrol Paneli</div>
+        </div>
+      </div>
+
+      <div class="zp-port-row">
+        <div class="zp-port-num">8036</div>
+        <div>
+          <div class="zp-port-title">Root / Yönetici Paneli</div>
+          <div class="zp-port-desc">HTTPS Yönetimsel Giriş Portu</div>
+        </div>
+      </div>
+
+      <div class="zp-port-row">
+        <div class="zp-port-num">8046</div>
+        <div>
+          <div class="zp-port-title">Webmail Girişi</div>
+          <div class="zp-port-desc">Roundcube Webmail Arayüzü</div>
+        </div>
+      </div>
+
+      <div class="zp-port-row">
+        <div class="zp-port-num">8056</div>
+        <div>
+          <div class="zp-port-title">Core REST API v1</div>
+          <div class="zp-port-desc">Otomasyon ve Entegrasyon API Geçidi</div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

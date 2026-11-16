@@ -3,8 +3,8 @@
 namespace Coremio\Modules\Servers\ZPanelVPS\Lib;
 
 /**
- * zPanel API İstemcisi (WISECP V3)
- * Port Mimarisi: 8056 (API), 8026 (Client), 8036 (Root)
+ * zPanel API İstemcisi (WISECP V3 & V5)
+ * Port Mimarisi: 8056 (Core REST API), 8026 (Client), 8036 (Root)
  */
 class ApiClient
 {
@@ -40,7 +40,7 @@ class ApiClient
             'Authorization: Bearer ' . $this->apiKey,
             'Content-Type: application/json',
             'Accept: application/json',
-            'User-Agent: WISECP-zPanel-VPS/1.0',
+            'User-Agent: WISECP-zPanel-VPS/1.1',
         ]);
 
         $method = strtoupper($method);
@@ -79,6 +79,16 @@ class ApiClient
         return $this->request('GET', 'health');
     }
 
+    public function startServer(): array
+    {
+        return $this->request('POST', 'system/start');
+    }
+
+    public function stopServer(bool $force = false): array
+    {
+        return $this->request('POST', 'system/stop', ['force' => $force]);
+    }
+
     public function rebootServer(): array
     {
         return $this->request('POST', 'system/reboot');
@@ -87,5 +97,24 @@ class ApiClient
     public function restartPanelServices(): array
     {
         return $this->request('POST', 'system/restart-panel');
+    }
+
+    public function resetRootPassword(string $newPassword): array
+    {
+        return $this->request('POST', 'system/reset-root-password', [
+            'password' => $newPassword,
+        ]);
+    }
+
+    public function reinstallOS(string $osTemplate): array
+    {
+        return $this->request('POST', 'system/reinstall', [
+            'os' => $osTemplate,
+        ]);
+    }
+
+    public function resizeServer(array $specs): array
+    {
+        return $this->request('PATCH', 'system/specs', $specs);
     }
 }
