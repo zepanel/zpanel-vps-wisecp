@@ -2,8 +2,7 @@
 /**
  * WISECP v3 zPanel VPS Module - Client Area View
  * Reference: https://github.com/wisecp-v3/sample-server-module
- * 
- * Dinamik Değerler: Müşterinin alan adı ($domain), sunucu IP'si ($server_ip) ve zPanel portları (:8026).
+ * Port Mimarisi: 8026 (Client), 8036 (Root), 8046 (Webmail), 8056 (API)
  */
 defined('CORE_FOLDER') OR exit('You can not access this file.');
 
@@ -11,145 +10,111 @@ $domain      = $data['domain'] ?? '';
 $serverIp    = $data['server_ip'] ?? '';
 $panelHost   = $data['panel_host'] ?? ($domain ?: $serverIp);
 $clientPort  = $data['client_port'] ?? 8026;
-$status      = $data['status'] ?? 'Active';
-$packageName = $data['package_name'] ?? 'Cloud VPS';
+$adminPort   = $data['admin_port'] ?? 8036;
+$status      = $data['status'] ?? 'active';
+$packageName = $data['package_name'] ?? 'zPanel Bulut Sunucu';
 $ssoUrl      = $data['sso_url'] ?? '#';
 
-$cpuCore = $data['cpu_core'] ?? 4;
+$cpuCore = $data['cpu_cores'] ?? 4;
 $ramMb   = $data['ram_mb'] ?? 8192;
 $diskGb  = $data['disk_gb'] ?? 160;
-$bwTb    = $data['bw_tb'] ?? 5;
-$osName  = $data['os_name'] ?? 'Ubuntu 24.04 LTS (zPanel Pre-installed)';
+$bwTb    = $data['bandwidth_tb'] ?? 5;
+$osName  = $data['os_name'] ?? 'Ubuntu / AlmaLinux';
 ?>
 
-<!-- Modül Kendi Varlıkları (Assets) -->
 <link rel="stylesheet" href="coremio/modules/Servers/ZPanelVPS/assets/css/client.css">
-<script src="coremio/modules/Servers/ZPanelVPS/assets/js/client.js"></script>
 
-<div class="zp-wisecp-vps">
+<div class="zp-wisecp-vps" style="font-family: inherit;">
   <!-- Üst Başlık Kartı -->
-  <div class="zp-card">
-    <div class="zp-header-flex">
+  <div class="zp-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 22px; margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
       <div>
-        <div class="d-flex align-items-center gap-2 mb-1">
-          <h2 class="zp-vps-title mb-0"><?php echo htmlspecialchars($packageName); ?></h2>
-          <span class="zp-badge-status">
-            <?php echo htmlspecialchars($status); ?>
-          </span>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+          <h2 style="font-size: 19px; font-weight: 700; margin: 0; color: #0f172a;"><?php echo htmlspecialchars($packageName); ?></h2>
+          <span style="background: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">zPanel v1.0</span>
         </div>
-        <div class="text-muted small font-monospace">
+        <div style="font-size: 13px; color: #64748b;">
           <?php if (!empty($domain)): ?>
-            <a href="https://<?php echo htmlspecialchars($domain); ?>:<?php echo $clientPort; ?>" target="_blank" class="text-primary text-decoration-none fw-bold">
+            <a href="https://<?php echo htmlspecialchars($domain); ?>:<?php echo $clientPort; ?>" target="_blank" style="color: #2563eb; text-decoration: none; font-weight: 700;">
               <?php echo htmlspecialchars($domain); ?>:<?php echo $clientPort; ?>
             </a>
             &bull;
           <?php endif; ?>
-          Sunucu IP: <strong><?php echo htmlspecialchars($serverIp ?: 'Belirtilmedi'); ?></strong>
+          Sunucu IP: <strong style="font-family: monospace; color: #0f172a;"><?php echo htmlspecialchars($serverIp ?: 'Atanmadı'); ?></strong>
+          &bull;
+          İşletim Sistemi: <strong style="color: #0f172a;"><?php echo htmlspecialchars($osName); ?></strong>
         </div>
       </div>
-      <div class="d-flex gap-2">
-        <a href="<?php echo htmlspecialchars($ssoUrl); ?>" target="_blank" class="zp-act-btn zp-act-sso px-4 py-2 rounded-pill">
+      <div>
+        <a href="<?php echo htmlspecialchars($ssoUrl); ?>" target="_blank" style="background: #2563eb; color: #fff; text-decoration: none; font-weight: 600; padding: 9px 18px; border-radius: 8px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
           zPanel Giriş (:<?php echo $clientPort; ?>) &rarr;
         </a>
       </div>
     </div>
   </div>
 
-  <!-- 6 Sade Sekme (Kaydırma Çubuğu Asla Yok) -->
-  <div class="zp-tabs">
-    <a href="#" class="zp-tab-item active" onclick="setWisecpVPSTab(event, 'tab-overview')">Genel Bakış</a>
-    <a href="#" class="zp-tab-item" onclick="setWisecpVPSTab(event, 'tab-management')">Yönetim</a>
-    <a href="#" class="zp-tab-item" onclick="setWisecpVPSTab(event, 'tab-addons')">Eklentiler</a>
-    <a href="#" class="zp-tab-item" onclick="setWisecpVPSTab(event, 'tab-billing')">Faturalama</a>
-    <a href="#" class="zp-tab-item" onclick="setWisecpVPSTab(event, 'tab-activity')">Aktivite</a>
-    <a href="#" class="zp-tab-item" onclick="setWisecpVPSTab(event, 'tab-cancel')">İptal</a>
-  </div>
-
-  <!-- 1. Sekme: Genel Bakış -->
-  <div id="tab-overview" class="zp-pane active">
-    <!-- 3 Gauge İbre Kartları -->
-    <div class="zp-gauges-row">
-      <div class="zp-gauge-box">
-        <div class="zp-gauge-label">CPU Kullanımı</div>
-        <svg id="wisecp-gauge-cpu" class="zp-gauge-svg"></svg>
-        <div class="zp-gauge-val">12%</div>
-        <div class="zp-gauge-sub"><?php echo htmlspecialchars($cpuCore); ?> vCPU Çekirdek</div>
-      </div>
-      <div class="zp-gauge-box">
-        <div class="zp-gauge-label">Bellek (RAM)</div>
-        <svg id="wisecp-gauge-ram" class="zp-gauge-svg"></svg>
-        <div class="zp-gauge-val">28%</div>
-        <div class="zp-gauge-sub">2.2 GB / <?php echo round($ramMb / 1024, 1); ?> GB</div>
-      </div>
-      <div class="zp-gauge-box">
-        <div class="zp-gauge-label">Depolama (Disk)</div>
-        <svg id="wisecp-gauge-disk" class="zp-gauge-svg"></svg>
-        <div class="zp-gauge-val">15%</div>
-        <div class="zp-gauge-sub">24 GB / <?php echo htmlspecialchars($diskGb); ?> GB NVMe</div>
-      </div>
+  <!-- Makine Donanım Özellikleri Kartları -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 20px;">
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;">
+      <div style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">İşlemci Kapasitesi</div>
+      <div style="font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1;"><?php echo htmlspecialchars($cpuCore); ?> <span style="font-size: 13px; font-weight: 600; color: #64748b;">vCPU</span></div>
+      <div style="font-size: 12px; color: #94a3b8; margin-top: 6px;">Yüksek Performans Çekirdek</div>
     </div>
 
-    <!-- 8 Hızlı İşlem Butonu -->
-    <div class="zp-actions-grid">
-      <button class="zp-act-btn" onclick="runWisecpVPSAction('reboot', '<?php echo htmlspecialchars($serverIp); ?>')">
-        <span class="fs-5">🔄</span>
-        <span>Yeniden Başlat</span>
-      </button>
-      <button class="zp-act-btn" onclick="runWisecpVPSAction('start', '<?php echo htmlspecialchars($serverIp); ?>')">
-        <span class="fs-5">▶️</span>
-        <span>Başlat</span>
-      </button>
-      <button class="zp-act-btn" onclick="runWisecpVPSAction('stop', '<?php echo htmlspecialchars($serverIp); ?>')">
-        <span class="fs-5">⏹️</span>
-        <span>Kapat</span>
-      </button>
-      <button class="zp-act-btn" onclick="runWisecpVPSAction('vnc', '<?php echo htmlspecialchars($serverIp); ?>')">
-        <span class="fs-5">🖥️</span>
-        <span>VNC Konsol</span>
-      </button>
-      <button class="zp-act-btn" onclick="runWisecpVPSAction('resetRoot', '<?php echo htmlspecialchars($serverIp); ?>')">
-        <span class="fs-5">🔑</span>
-        <span>Root Şifresi</span>
-      </button>
-      <button class="zp-act-btn" onclick="runWisecpVPSAction('rebuild', '<?php echo htmlspecialchars($serverIp); ?>')">
-        <span class="fs-5">⚡</span>
-        <span>Yeniden Kur</span>
-      </button>
-      <button class="zp-act-btn" onclick="runWisecpVPSAction('snapshot', '<?php echo htmlspecialchars($serverIp); ?>')">
-        <span class="fs-5">💾</span>
-        <span>Snapshot</span>
-      </button>
-      <a href="<?php echo htmlspecialchars($ssoUrl); ?>" target="_blank" class="zp-act-btn zp-act-sso">
-        <span class="fs-5">🌐</span>
-        <span>zPanel SSO (:<?php echo $clientPort; ?>)</span>
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;">
+      <div style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">Bellek (RAM)</div>
+      <div style="font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1;"><?php echo htmlspecialchars($ramMb); ?> <span style="font-size: 13px; font-weight: 600; color: #64748b;">MB</span></div>
+      <div style="font-size: 12px; color: #94a3b8; margin-top: 6px;">DDR4 / DDR5 ECC RAM</div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;">
+      <div style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">Depolama Alanı</div>
+      <div style="font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1;"><?php echo htmlspecialchars($diskGb); ?> <span style="font-size: 13px; font-weight: 600; color: #64748b;">GB NVMe</span></div>
+      <div style="font-size: 12px; color: #94a3b8; margin-top: 6px;">RAID10 NVMe SSD Depolama</div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;">
+      <div style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">Aylık Trafik Kotası</div>
+      <div style="font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1;"><?php echo htmlspecialchars($bwTb); ?> <span style="font-size: 13px; font-weight: 600; color: #64748b;">TB</span></div>
+      <div style="font-size: 12px; color: #94a3b8; margin-top: 6px;">1 Gbps Korumalı Hat</div>
+    </div>
+  </div>
+
+  <!-- Gerçek Sunucu Eylemleri Butonları -->
+  <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 22px; margin-bottom: 20px;">
+    <h3 style="font-size: 15px; font-weight: 700; margin: 0 0 16px 0; color: #1e293b;">Sunucu Yönetim Eylemleri</h3>
+    
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <form method="post" action="" onsubmit="return confirm('Sunucuyu yeniden başlatmak istediğinize emin misiniz?');">
+        <input type="hidden" name="module_action" value="Reboot">
+        <button type="submit" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;">
+          &#x21bb; Sunucuyu Yeniden Başlat
+        </button>
+      </form>
+
+      <form method="post" action="" onsubmit="return confirm('zPanel servislerini yeniden başlatmak istediğinize emin misiniz?');">
+        <input type="hidden" name="module_action" value="RestartPanel">
+        <button type="submit" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;">
+          &#x2699; zPanel Servislerini Yeniden Başlat
+        </button>
+      </form>
+
+      <a href="https://<?php echo htmlspecialchars($panelHost); ?>:8046" target="_blank" style="background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; text-decoration: none;">
+        &#x2709; Webmail Giriş (:8046)
       </a>
     </div>
-
-    <!-- Donanım ve Erişim Detayı -->
-    <div class="zp-card p-4">
-      <h3 class="h6 fw-bold mb-3">Sunucu ve Donanım Detayı</h3>
-      <table class="table table-sm table-borderless mb-0">
-        <tbody>
-          <tr><td class="text-muted fw-bold" style="width: 25%;">İşletim Sistemi:</td><td><?php echo htmlspecialchars($osName); ?></td></tr>
-          <tr><td class="text-muted fw-bold">Statik IP:</td><td class="font-monospace fw-bold"><?php echo htmlspecialchars($serverIp ?: 'Atanmadı'); ?></td></tr>
-          <tr><td class="text-muted fw-bold">Müşteri Portu:</td><td class="font-monospace">8026 (HTTPS)</td></tr>
-          <tr><td class="text-muted fw-bold">Aylık Trafik:</td><td><?php echo htmlspecialchars($bwTb); ?> TB Yüksek Hızlı Trafik</td></tr>
-        </tbody>
-      </table>
-    </div>
   </div>
 
-  <div id="tab-management" class="zp-pane"><div class="zp-card p-4"><p class="text-muted mb-0">DNS, Güvenlik Duvarı ve Port İletme Kuralları zPanel API üzerinden yönetilmektedir.</p></div></div>
-  <div id="tab-addons" class="zp-pane"><div class="zp-card p-4"><p class="text-muted mb-0">Ek IP, Ek Disk ve Yedekleme eklentileri aktif.</p></div></div>
-  <div id="tab-billing" class="zp-pane"><div class="zp-card p-4"><p class="text-muted mb-0">Sonraki fatura dönemi ve ödeme geçmişi.</p></div></div>
-  <div id="tab-activity" class="zp-pane"><div class="zp-card p-4"><p class="text-muted mb-0">Sunucu yeniden başlatma, yedek alma ve kullanıcı giriş günlükleri.</p></div></div>
-  <div id="tab-cancel" class="zp-pane"><div class="zp-card p-4"><p class="text-muted mb-0">Hizmet iptal talebi oluşturma ekranı.</p></div></div>
+  <!-- Ağ ve Port Detayları Tablosu -->
+  <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 22px;">
+    <h3 style="font-size: 15px; font-weight: 700; margin: 0 0 14px 0; color: #1e293b;">Sunucu Ağ &amp; Port Yapılandırması</h3>
+    <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 0; color: #64748b;">Statik IPv4 Adresi</td><td style="padding: 10px 0; font-family: monospace; font-weight: 700;"><?php echo htmlspecialchars($serverIp ?: 'Atanmadı'); ?></td></tr>
+      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 0; color: #64748b;">Web Sunucusu</td><td style="padding: 10px 0; font-weight: 600;">zMaxServer &amp; OpenLiteSpeed (LSAPI)</td></tr>
+      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 0; color: #64748b;">zPanel Müşteri Paneli</td><td style="padding: 10px 0; font-family: monospace; color: #2563eb; font-weight: 700;">8026 / TCP (HTTPS)</td></tr>
+      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 0; color: #64748b;">zPanel Root / Yönetici Paneli</td><td style="padding: 10px 0; font-family: monospace; color: #d97706; font-weight: 700;">8036 / TCP (HTTPS)</td></tr>
+      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 0; color: #64748b;">Webmail Portu</td><td style="padding: 10px 0; font-family: monospace; font-weight: 700;">8046 / TCP (HTTPS)</td></tr>
+      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 0; color: #64748b;">Core REST API Portu</td><td style="padding: 10px 0; font-family: monospace; font-weight: 700;">8056 / TCP (HTTPS)</td></tr>
+    </table>
+  </div>
 </div>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    if (window.initWisecpVPSGauges) {
-      window.initWisecpVPSGauges(12, 28, 15);
-    }
-  });
-</script>
